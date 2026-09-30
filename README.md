@@ -6,15 +6,20 @@ The repo as of now is a work in progress and will not work. Automation scripts a
 
 ## Layout
 
-### Here are the users that we're using for the test network
-
-![AD Users](docs/diagrams/users.svg)
-
-### Here is the network layout we're using for testing
+### Network Layout and Chart:
 
 ![Network Layout](docs/diagrams/networklayout.svg)
 
 ![Network Chart](docs/diagrams/netchart.svg)
+
+### Users
+
+![AD Users](docs/diagrams/users.svg)
+
+### VMs and Provisioning
+
+! TODO: ADD THIS ONCE CONFIRMING HOW MANY RESOURCES ARE ALLOCATED TO THE FIREWALLS
+(RLES is down at the moment)
 
 ## Usage
 
