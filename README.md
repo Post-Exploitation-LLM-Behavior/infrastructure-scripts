@@ -25,6 +25,11 @@ The repo as of now is a work in progress and will not work. Automation scripts a
 
 The setup needs to be run in a specific way, which is annoying but very necessary. Follow the directions given in this section in order to make sure there are no issues.
 
+### Configure the External pfSense Router
+
+<details>
+<summary>STEPS</summary>
+
 1) Go to the RLES settings for the `ext-pfsense` VM and check the "Network" tab:
 
 ![ext-pfsense NICs](docs/images/ext-networks-rles.png)
@@ -60,3 +65,14 @@ php ext-pfsense.php --logging --debug # the logging logs all attempts that are m
 ```
 
 5) Test connection on the `attacker` and `langfuse` VMs by pinging google.com and updating with apt
+
+</details>
+
+### Configure the Internal pfSense Router
+
+<details>
+<summary>STEPS</summary>
+
+1) Open 
+
+</details>
