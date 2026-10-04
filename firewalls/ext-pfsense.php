@@ -58,7 +58,6 @@ $LAN = "lan";
 $LAN_TARGETS = array("172.16.10.10", "172.16.10.11");
 $PROBE_IP = "172.16.10.250";
 
-// TODO: FIX THESE, they're the interface names
 $WAN_IF = "";
 $LAN_IF = "";
 
@@ -132,7 +131,7 @@ if ($WAN_IF === "" || $LAN_IF === "") {
     fwrite(STDERR, "   - Are " . implode(", ", $LAN_TARGETS) .
                     " powered on and on Attacker_LAN?\n");
     fwrite(STDERR, "   - Is the WAN NIC up with a default route?\n");
-    fwrite(STDERR, "   Or set \$WAN_IF/\$LAN_IF manually and \$AUTO_DETECT_IFACES=false.\n");
+    fwrite(STDERR, "   Or set \$WAN_IF/\$LAN_IF manually.\n");
     exit(1);
 }
 if ($WAN_IF === $LAN_IF) {
@@ -212,9 +211,10 @@ if (!is_array($config['filter']['rule'] ?? null)) $config['filter']['rule'] = ar
 
 // Keep the existing rule's tracker so log entries still map to it across reruns
 $tracker = (string) time();
+$reused = false;
 foreach ($config['filter']['rule'] as $r) {
     if (($r['descr'] ?? '') === $RULE_DESCR && !empty($r['tracker'])) {
-        $tracker = $r['tracker']; break;
+        $tracker = $r['tracker']; $reused = true; break;
     }
 }
 
