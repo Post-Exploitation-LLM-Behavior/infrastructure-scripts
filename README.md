@@ -25,7 +25,7 @@ The repo as of now is a work in progress and will not work. Automation scripts a
 
 The setup needs to be run in a specific way, which is annoying but very necessary. Follow the directions given in this section in order to make sure there are no issues.
 
-### Configure the External pfSense Router
+### A: Configure the External pfSense Router
 
 <details>
 <summary>STEPS</summary>
@@ -71,11 +71,80 @@ php ext-pfsense.php --logging --debug # the logging logs all attempts that are m
 
 </details>
 
-### Configure the Internal pfSense Router
+### B: Configure the Internal pfSense Router
 
 <details>
 <summary>STEPS</summary>
 
-1) Open 
+Honestly, this part is very frustrating. pfsense by default isn't going very deep for resolving domain names so raw.githubusercontent.com doesn't resolve on the default installation, so initializing certain things will be required before getting access to it (setting up >=2 NICs, WAN and 1 of the LANs, and then accessing the web interface after altering the IP of a separate machine to setup the DNS settings will allow you to access it).
+
+1) Open `int-pfsense`'s console
+
+![int-pfsense NICs](docs/images/int-networks-rles.png)
+
+* choose "1) Assign Interfaces"
+* choose the Attacker_LAN RLES interface for the pfSense WAN interface (based on MAC address)
+* choose the LAN_101 RLES interface for the pfSense LAN interface (based on MAC address)
+* skip the OPT interfaces for now
+* choose "2) Set interface(s) IP Address
+* select the WAN address (1)
+  * n
+  * 172.16.10.2
+  * 24
+  * 172.16.10.1
+  * y
+  * n
+  * *Enter/Return*
+  * n
+* select the LAN address (2)
+  * n
+  * 192.168.10.1
+  * 24
+  * *Enter/Return*
+  * n
+  * *Enter/Return*
+  * n
+
+2) Open `Element-Server`'s console
+
+* change the network to a manual network
+* Assign them the following:
+  * IP address
+    * attacker: "192.168.10.11"
+  * Netmask: "255.255.255.0"
+  * Gateway: "192.168.10.1"
+  * DNS Servers: "8.8.8.8,1.1.1.1"
+* Open a browser and go to "http://192.168.10.1"
+  * login
+    * user: "admin"
+    * password: "pfsense"
+  * ignore configuring, pfSense community edition at the top left, agree to legal stuff
+  * System --> General Setup
+  * Under DNS Servers, under:
+    * Set the IP to "8.8.8.8"
+    * Set the gateway to the choice shown in the image below
+  * scroll to the bottom of the page, and save
+  * Services --> DNS Resolver (General Settings) and set the following
+    * Forwarding Mode **ENABLED**
+    * Use SSL/TLS **DISABLED**
+  * Save and Apply changes (separate steps, click save, apply button should appear after)
+
+  ![int-pfsense DNS gateway](docs/images/int-DNS-gateway.png)
+
+3) Wait 5 minutes
+
+* The DNS Resolver for the internal pfSense router might go down for a bit, so prematurely trying the rest of these steps could lead to you doing *significantly* more work than needed getting worried about why you can't reach "raw.githubuser.com"
+
+4) Go back to the `int-pfsense` machine
+
+* choose "8) Shell" and run the following commands:
+
+```bash
+curl -O https://raw.githubusercontent.com/Post-Exploitation-LLM-Behavior/infrastructure-scripts/refs/heads/main/firewalls/int-pfsense.php
+chmod 755 int-pfsense.php     # probably not necessary but untested without
+php int-pfsense.php --debug   # there's an optional logging flag as well, but it's less useful, debug is just helpful for info
+```
+
+* Reference the Networks section on RLES for the internal pfSense machine as you did in step B1 to assign the correct interfaces
 
 </details>
