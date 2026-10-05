@@ -15,6 +15,8 @@
     execute phase 2 automatically.
 #>
 
+$Hostname      = "ad-serv"
+
 $DomainName    = "ecorp.local"
 $DomainNetbios = "ECORP"
 
@@ -62,6 +64,21 @@ function Test-IsDomainController {
 if (-not (Test-IsDomainController)) {
 
     Write-Host "[*] PHASE 1: promoting $DomainName" -ForegroundColor Cyan
+
+    # Rename the box BEFORE promoting it. Renaming a DC after the fact is
+    # painful (SPN/DNS churn), so do it here: rename -> reboot -> resume.
+    if ($env:COMPUTERNAME -ne $Hostname) {
+        Write-Host "[*] Renaming $env:COMPUTERNAME -> $Hostname (reboots)" -ForegroundColor Yellow
+        if ($AutoResume) {
+            $self = $MyInvocation.MyCommand.Path
+            Set-ItemProperty `
+                "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce" `
+                -Name "ConfigureAD-Resume" `
+                -Value "powershell.exe -ExecutionPolicy Bypass -NoProfile -File `"$self`""
+        }
+        Rename-Computer -NewName $Hostname -Force -Restart
+        return
+    }
 
     if ($ConfigureNetwork) {
         Write-Host "[*] Setting static IP $StaticIP/$PrefixLength"
