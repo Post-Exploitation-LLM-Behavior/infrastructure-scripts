@@ -131,7 +131,7 @@ function New-LabUser {
         -UserPrincipalName "$Sam@$DomainName" `
         -AccountPassword (ConvertTo-SecureString $Pw -AsPlainText -Force) `
         -Path $usersCont -Enabled $true `
-        -PasswordNeverExpires:$NeverExpire `
+        -PasswordNeverExpires:([bool]$NeverExpire) `
         -ChangePasswordAtLogon:$false
     Write-Host "    + $Sam"
 }
