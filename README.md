@@ -39,11 +39,14 @@ The setup needs to be run in a specific way, which is annoying but very necessar
 
 2) Open the console for your `ext-pfsense` VM:
 
+* select the right interfaces for WAN and LAN (needed in order to download config scripts)
 * choose option "1) Assign Interfaces"
 * Answer "n" or "no" to setting up VLANs
 * choose the corrrect options for LAN and WAN based on the MAC addresses displayed earlier and the interface MAC addresses shown in pfsense (they need to match)
 * when it asks you to enter the optional interface, just hit enter
 * enter "y" to proceed
+* (**IMPORTANT**) REASSIGN THE INTERFACES USING THE NAT NIC AS THE WAN AND THE ATTACKER NIC AS THE LAN
+  * I've spent hours trying to get this to consistently assign the right IP addresses and it just won't do it
 
 3) Open the consoles for your `attacker` and `langfuse` VMs:
 

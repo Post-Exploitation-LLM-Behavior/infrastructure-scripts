@@ -71,6 +71,12 @@ $RANGES     = "10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 100.64.0.0/10";
 $ALIAS_DESCR = "Private + CGNAT destinations";
 $RULE_DESCR  = "Block internal attack-net -> external private/CGNAT (contain the pentesting AI)";
 
+// variables needed to add exception to lab machines
+$LAB_ALIAS_NAME  = "LAB_SUBNETS";
+$LAB_RANGES      = "172.16.10.0/24 192.168.10.0/24 10.1.1.0/24 172.16.0.0/24";
+$LAB_ALIAS_DESCR = "Lab infrastructure subnets (attack-net + int-net 1/2/3)";
+$PASS_RULE_DESCR = "Allow internal attack-net -> lab subnets (infra exception)";
+
 dbg("flags: debug=on, logging=" . ($LOGGING ? "on" : "off"));
 
 // NIC detection function
@@ -205,6 +211,23 @@ if (!$found) {
 }
 dbg("alias $ALIAS_NAME " . ($found ? "updated" : "created") . ": $RANGES");
 
+// checking for alias about infrastructure
+$labfound = false;
+foreach ($config['aliases']['alias'] as &$a) {
+    if (($a['name'] ?? '') === $LAB_ALIAS_NAME) {
+        $a['type'] = "network"; $a['address'] = $LAB_RANGES; $a['descr'] = $LAB_ALIAS_DESCR;
+        $labfound = true; break;
+    }
+}
+unset($a);
+if (!$labfound) {
+    $config['aliases']['alias'][] = array(
+        'name' => $LAB_ALIAS_NAME, 'type' => "network",
+        'address' => $LAB_RANGES, 'descr' => $LAB_ALIAS_DESCR,
+    );
+}
+dbg("alias $LAB_ALIAS_NAME " . ($labfound ? "updated" : "created") . ": $LAB_RANGES");
+
 // Firewall block rule
 if (!is_array($config['filter'])) $config['filter'] = array();
 if (!is_array($config['filter']['rule'] ?? null)) $config['filter']['rule'] = array();
@@ -244,6 +267,30 @@ if ($LOGGING) $rule['log'] = "";
 
 // Put this at the front of the rules
 array_unshift($config['filter']['rule'], $rule);
+
+// adding the alias to allow for traffic to infrastructure
+$pass_tracker = (string) time();
+foreach ($config['filter']['rule'] as $r) {
+    if (($r['descr'] ?? '') === $PASS_RULE_DESCR && !empty($r['tracker'])) {
+        $pass_tracker = $r['tracker']; break;
+    }
+}
+$config['filter']['rule'] = array_values(array_filter(
+    $config['filter']['rule'],
+    function ($r) use ($PASS_RULE_DESCR) { return ($r['descr'] ?? '') !== $PASS_RULE_DESCR; }
+));
+$pass = array(
+    'type'        => "pass",
+    'interface'   => $LAN,
+    'ipprotocol'  => "inet",
+    'source'      => array('network' => $LAN),
+    'destination' => array('address' => $LAB_ALIAS_NAME),
+    'descr'       => $PASS_RULE_DESCR,
+    'tracker'     => $pass_tracker,
+);
+if ($LOGGING) $pass['log'] = "";
+array_unshift($config['filter']['rule'], $pass);
+dbg("pass rule (lab exception) placed above block: {$LAN} net -> {$LAB_ALIAS_NAME}");
 
 // check to see if admin password is valid
 if (!preg_match('/^\$2y\$\d{2}\$[.\/A-Za-z0-9]{53}$/', $ADMIN_PW)) {
@@ -286,7 +333,7 @@ dbg("filter reloaded");
 echo "Done.\n";
 echo "  WAN  ({$WAN}): DHCP client\n";
 echo "  LAN  ({$LAN}): {$LAN_IP}/{$LAN_SUBNET}, DHCP server disabled\n";
-echo "  Rule: block {$LAN} net -> {$ALIAS_NAME}\n";
+echo "  Rules: pass {$LAN} net -> {$LAB_ALIAS_NAME}  THEN  block {$LAN} net -> {$ALIAS_NAME}\n";
 echo "  Admin: password hash replaced\n";
 
 if ($DEBUG) {
@@ -296,6 +343,7 @@ if ($DEBUG) {
     echo "[debug]   LAN if      : " . ($config['interfaces'][$LAN]['if'] ?? '?') .
          "  ipaddr=" . ($config['interfaces'][$LAN]['ipaddr'] ?? '?') .
          "/" . ($config['interfaces'][$LAN]['subnet'] ?? '?') . "\n";
+    echo "[debug]   pass rule   : src=" . $LAN . " net  dst=" . $LAB_ALIAS_NAME . "  (above block)\n";
     echo "[debug]   block rule  : src=" . $LAN . " net  dst=" . $ALIAS_NAME .
          "  log=" . ($LOGGING ? "yes" : "no") . "\n";
     echo "[debug]   total rules on all interfaces: " . count($config['filter']['rule']) . "\n";
