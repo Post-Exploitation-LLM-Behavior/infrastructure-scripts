@@ -1,21 +1,19 @@
 # Run as Administrator
+# Installs Element Desktop and points it at your homeserver.
 
-# 1. Fetch release info with custom User-Agent
-$apiUrl  = "https://api.github.com/repos/element-hq/element-desktop/releases/latest"
-$release = Invoke-RestMethod -Uri $apiUrl -Headers @{ "User-Agent" = "Mozilla/5.0" }
-$asset   = $release.assets | Where-Object { $_.name -like "Element Setup*.exe" -or $_.name -like "*.exe" } | Select-Object -First 1
+$installer = "$env:TEMP\ElementSetup.exe"
+$downloadUrl = "https://packages.element.io/desktop/update/win32/x64/Element%20Setup.exe"
 
-if (-not $asset) {
-    Write-Error "Could not retrieve the download URL from GitHub API. Please check your internet connection or GitHub rate limits."
+Write-Host "Downloading Element Desktop..."
+Invoke-WebRequest -Uri $downloadUrl -OutFile $installer
+
+# Verify download succeeded
+if (-not (Test-Path $installer)) {
+    Write-Error "Download failed. Please check your network connection."
     return
 }
 
-$installer = "$env:TEMP\ElementSetup.exe"
-
-Write-Host "Downloading Element from $($asset.browser_download_url)..."
-Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $installer
-
-Write-Host "Installing Element..."
+Write-Host "Installing Element Desktop..."
 Start-Process -FilePath $installer -ArgumentList "/S" -Wait
 
 # >>> EDIT THESE <<<
@@ -28,7 +26,6 @@ if (-not (Test-Path $installDir)) {
     $installDir = "$env:LOCALAPPDATA\Programs\Element" 
 }
 
-# Ensure directory exists before writing config
 if (-not (Test-Path $installDir)) {
     New-Item -ItemType Directory -Path $installDir -Force | Out-Null
 }
