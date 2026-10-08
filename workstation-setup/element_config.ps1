@@ -1,10 +1,10 @@
 # Run as Administrator
 # Installs Element Desktop and points it at your homeserver.
 
-$installer = "$env:TEMP\ElementSetup.exe"
-$downloadUrl = "https://packages.element.io/desktop/update/win32/x64/Element%20Setup.exe"
+$downloadUrl = "https://packages.element.io/desktop/install/win32/x64/Element%20Setup.exe"
+$installer   = "$env:TEMP\ElementSetup.exe"
 
-Write-Host "Downloading Element Desktop..."
+Write-Host "Downloading Element Desktop from $downloadUrl..."
 Invoke-WebRequest -Uri $downloadUrl -OutFile $installer
 
 # Verify download succeeded
@@ -20,7 +20,7 @@ Start-Process -FilePath $installer -ArgumentList "/S" -Wait
 $homeserverBaseUrl = "https://your-homeserver.com"
 $serverName        = "your-homeserver.com"
 
-# Determine install directory and ensure path exists
+# Determine install directory and ensure directory exists
 $installDir = "C:\Program Files\Element"
 if (-not (Test-Path $installDir)) { 
     $installDir = "$env:LOCALAPPDATA\Programs\Element" 
