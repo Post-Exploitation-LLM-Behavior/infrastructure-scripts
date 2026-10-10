@@ -17,7 +17,7 @@ Write-Host "Installing Element Desktop..."
 Start-Process -FilePath $installer -ArgumentList "/S" -Wait
 
 # >>> EDIT THESE <<<
-$homeserverBaseUrl = "https://your-homeserver.com"
+$homeserverBaseUrl = "https://192.168.10.11"
 $serverName        = "your-homeserver.com"
 
 # Determine install directory and ensure directory exists

