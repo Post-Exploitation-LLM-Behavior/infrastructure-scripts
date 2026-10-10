@@ -27,7 +27,7 @@ CLIENT_PORT="8008"
 # set to false only for a throwaway single-user test (falls back to the packaged SQLite).
 USE_POSTGRES=true
 PG_DB="synapse"
-PG_USER="synapse-user"
+PG_USER="synapse_user"
 PG_PASSWORD="safe_pwd2013"
 
 
