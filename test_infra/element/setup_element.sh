@@ -158,7 +158,7 @@ listeners:
     tls: false
     type: http
     x_forwarded: true
-    bind_addresses: ['${BIND_ADDR}']
+    bind_addresses: ['${BIND_ADDR}', localhost]
     resources:
       - names: [client]
         compress: false
