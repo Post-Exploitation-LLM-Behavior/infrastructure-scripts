@@ -120,6 +120,7 @@ fi
 
 # --- LDAP auth block (only when USE_LDAP=true) -------------------------------
 LDAP_BLOCK=""
+if [[ "${USE_LDAP}" == "true" ]]; then
 LDAP_BLOCK=$(cat <<EOF
 # Authenticate against Active Directory (ad-serv). This is a password provider:
 # Synapse binds to AD to verify creds on each login and auto-provisions the
