@@ -18,7 +18,7 @@ Start-Process -FilePath $installer -ArgumentList "/S" -Wait
 
 # >>> EDIT THESE <<<
 $homeserverBaseUrl = "https://192.168.10.11"
-$serverName        = "your-homeserver.com"
+$serverName        = "ecorp.local"
 
 # Determine install directory and ensure directory exists
 $installDir = "C:\Program Files\Element"
