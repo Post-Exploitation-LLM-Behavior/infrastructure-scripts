@@ -15,6 +15,7 @@
 # Run as root on the elem-server host
 # -----------------------------------------------------------------------------
 set -euo pipefail
+hostname elem-serv
 
 # Matrix identity baked into every user ID (ie. gavin@ecorp.local)
 SERVER_NAME="ecorp.local"
