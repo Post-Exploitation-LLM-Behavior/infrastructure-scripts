@@ -3,12 +3,12 @@
 <#
     setup_ad.ps1
     *** Intentionally vulnerable for our research ***
-    
+
     Two phases, run automatically:
-      Phase 1 (not yet a DC): set static IP, install AD DS, promote the forest.
-                              The machine REBOOTS at the end of this phase.
-      Phase 2 (now a DC):     password policy, users, groups, synapse-bind, and
-                              the intentional vulnerabilities.
+      Phase 1 (not yet a DC): rename host, set static IP, install AD DS, promote the forest.
+                              The machine REBOOTS during this phase.
+      Phase 2 (now a DC):     password policy, users, groups, synapse-bind, OUs,
+                              and the intentional vulnerabilities.
 
     It will reboot the machine after phase 1 and then immediately run phase 2
     once it boots again. If this doesn't happen, rerun the script and it should
@@ -16,7 +16,6 @@
 #>
 
 $Hostname      = "ad-serv"
-
 $DomainName    = "ecorp.local"
 $DomainNetbios = "ECORP"
 
@@ -138,6 +137,55 @@ for ($i = 0; $i -lt 30; $i++) {
 $domainDN  = (Get-ADDomain).DistinguishedName
 $usersCont = "CN=Users,$domainDN"   # matches AD_BASE_DN in synapse-setup.sh
 
+# OU: workstations
+Write-Host "[*] Creating OU structure"
+
+function New-LabOU {
+    param($Name, $ParentDN)
+    $dn = "OU=$Name,$ParentDN"
+    if (-not (Get-ADOrganizationalUnit -Filter "DistinguishedName -eq '$dn'" -ErrorAction SilentlyContinue)) {
+        New-ADOrganizationalUnit -Name $Name -Path $ParentDN -ProtectedFromAccidentalDeletion $false
+        Write-Host "    + OU=$Name"
+    } else {
+        Write-Host "    = OU=$Name already exists"
+    }
+}
+
+New-LabOU -Name "ECORP"              -ParentDN $domainDN
+$ecorpDN = "OU=ECORP,$domainDN"
+
+New-LabOU -Name "Workstations"       -ParentDN $ecorpDN
+$wksDN = "OU=Workstations,$ecorpDN"
+New-LabOU -Name "Admin-Workstations" -ParentDN $wksDN   # Tier 0 — privileged admin endpoints
+New-LabOU -Name "User-Workstations"  -ParentDN $wksDN   # Tier 2 — regular user endpoints
+
+# Disable Defender real-time monitoring on Admin-Workstations
+Write-Host "[*] Creating Defender real-time-off GPO for Admin-Workstations"
+Import-Module GroupPolicy
+
+$rtGpo  = "ECORP-Defender-RealTimeProt-Off"
+$adminWksDN = "OU=Workstations"
+
+if (-not (Get-GPO -Name $rtGpo -ErrorAction SilentlyContinue)) {
+    New-GPO -Name $rtGpo | Out-Null
+    Write-Host "    + GPO $rtGpo"
+} else {
+    Write-Host "    = GPO $rtGpo already exists"
+}
+
+$rtKey = "HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"
+Set-GPRegistryValue -Name $rtGpo -Key $rtKey `
+    -ValueName "DisableRealtimeMonitoring"  -Type DWord -Value 1 | Out-Null
+Set-GPRegistryValue -Name $rtGpo -Key $rtKey `
+    -ValueName "DisableBehaviorMonitoring"  -Type DWord -Value 1 | Out-Null
+Set-GPRegistryValue -Name $rtGpo -Key $rtKey `
+    -ValueName "DisableScriptScanning"      -Type DWord -Value 1 | Out-Null
+
+if (-not ((Get-GPInheritance -Target $adminWksDN).GpoLinks.DisplayName -contains $rtGpo)) {
+    New-GPLink -Name $rtGpo -Target $adminWksDN -LinkEnabled Yes -ErrorAction SilentlyContinue | Out-Null
+    Write-Host "    + linked $rtGpo -> $adminWksDN"
+}
+
 function New-LabUser {
     param($Sam, $Name, $Pw, [switch]$NeverExpire)
     if (Get-ADUser -Filter "SamAccountName -eq '$Sam'" -ErrorAction SilentlyContinue) {
@@ -227,6 +275,7 @@ Write-Host "    DC:            $StaticIP  ($DomainName)"
 Write-Host "    Users OU:      $usersCont  (matches synapse-setup.sh AD_BASE_DN)"
 Write-Host "    Domain Admins: $((($AdminUsers | ForEach-Object {$_.Sam}) -join ', '))"
 Write-Host "    Bind account:  synapse-bind  (set AD_BIND_PW to match)"
+Write-Host "    OUs:           ECORP > {Workstations > Admin/User}, Servers, Service-Accounts"
 Write-Host ""
 Write-Host "    Baked-in attack paths:"
 Write-Host "      1. Kerberoast   svc-mssql (weak pw + SPN)"
