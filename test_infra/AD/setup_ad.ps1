@@ -198,7 +198,7 @@ Write-Host "[*] Creating Defender real-time-off GPO for Workstations"
 Import-Module GroupPolicy
 
 $rtGpo  = "ECORP-Defender-RealTimeProt-Off"
-$newWksDN = "ECORP-All-Workstations"
+$newWksDN = "OU=Workstations,OU=ECORP,DC=ecorp,DC=local"
 
 if (-not (Get-GPO -Name $rtGpo -ErrorAction SilentlyContinue)) {
     New-GPO -Name $rtGpo | Out-Null
