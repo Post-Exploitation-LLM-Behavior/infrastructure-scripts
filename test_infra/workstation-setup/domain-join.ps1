@@ -25,7 +25,7 @@ param(
     [string] $DnsServer    = "192.168.10.10",
     [string] $NewName      = "",
     [string] $OUPath       = "",
-    [string] $JoinUser     = "ECORP\Administrator",
+    [string] $JoinUser     = "ECORP\spraino",
     [string] $JoinPassword = "",
     [switch] $SkipDns,
     [switch] $NoReboot
