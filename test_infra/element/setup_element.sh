@@ -177,7 +177,7 @@ report_stats: false
 ${DB_BLOCK}
 ${LDAP_BLOCK}
 EOF
-chown root:_matrix-synapse "${LAB_CONF}"
+chown root:matrix-synapse "${LAB_CONF}"
 chmod 640 "${LAB_CONF}"
 
 echo "[*] Enabling + starting Synapse"

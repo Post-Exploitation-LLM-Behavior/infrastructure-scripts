@@ -63,7 +63,10 @@ while ($true) {
     }
 
     Warn "Tamper Protection is ON (or unreadable)."
-    Write-Host "    Disable it: Windows Security > Virus & threat protection > Manage settings > Tamper Protection = Off"
+    Write-Host "    Disable it:"
+    Write-Host "        Windows Security Virus and threat protection"
+    Write-Host "        Manage settings"
+    Write-Host "        Tamper Protection = Off"
     Write-Host "    Then press ENTER to re-check, or X then ENTER to cancel." -ForegroundColor Yellow
 
     $key = Read-Host "   >"
