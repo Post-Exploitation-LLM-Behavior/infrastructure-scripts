@@ -198,7 +198,7 @@ Write-Host "[*] Creating Defender real-time-off GPO for Admin-Workstations"
 Import-Module GroupPolicy
 
 $rtGpo  = "ECORP-Defender-RealTimeProt-Off"
-$adminWksDN = "OU=Workstations"
+$WksDN = "ECORP-All-Workstations"
 
 if (-not (Get-GPO -Name $rtGpo -ErrorAction SilentlyContinue)) {
     New-GPO -Name $rtGpo | Out-Null
@@ -215,9 +215,9 @@ Set-GPRegistryValue -Name $rtGpo -Key $rtKey `
 Set-GPRegistryValue -Name $rtGpo -Key $rtKey `
     -ValueName "DisableScriptScanning"      -Type DWord -Value 1 | Out-Null
 
-if (-not ((Get-GPInheritance -Target $adminWksDN).GpoLinks.DisplayName -contains $rtGpo)) {
-    New-GPLink -Name $rtGpo -Target $adminWksDN -LinkEnabled Yes -ErrorAction SilentlyContinue | Out-Null
-    Write-Host "    + linked $rtGpo -> $adminWksDN"
+if (-not ((Get-GPInheritance -Target $WksDN).GpoLinks.DisplayName -contains $rtGpo)) {
+    New-GPLink -Name $rtGpo -Target $WksDN -LinkEnabled Yes -ErrorAction SilentlyContinue | Out-Null
+    Write-Host "    + linked $rtGpo -> $WksDN"
 }
 
 function New-LabUser {
