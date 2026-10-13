@@ -137,40 +137,6 @@ for ($i = 0; $i -lt 30; $i++) {
 $domainDN  = (Get-ADDomain).DistinguishedName
 $usersCont = "CN=Users,$domainDN"   # matches AD_BASE_DN in synapse-setup.sh
 
-# Disable local accounts
-Write-Host "[*] Creating GPO: disable built-in local accounts domain-wide"
-Import-Module GroupPolicy
-
-$localGpo = "ECORP-Disable-Local-Accounts"
-if (-not (Get-GPO -Name $localGpo -ErrorAction SilentlyContinue)) {
-    New-GPO -Name $localGpo | Out-Null
-    Write-Host "    + GPO $localGpo"
-} else {
-    Write-Host "    = GPO $localGpo already exists"
-}
-$gpoId   = (Get-GPO -Name $localGpo).Id.Guid
-$sysvol  = "\\$DomainName\SYSVOL\$DomainName\Policies\{$gpoId}\Machine\Microsoft\Windows NT\SecEdit"
-New-Item -ItemType Directory -Path $sysvol -Force | Out-Null
-@"
-[Unicode]
-Unicode=yes
-[System Access]
-EnableAdminAccount = 0
-EnableGuestAccount = 0
-[Version]
-signature="`$CHICAGO`$"
-Revision=1
-"@ | Out-File "$sysvol\GptTmpl.inf" -Encoding Unicode -Force
-
-$verKey = "HKLM\Software\Policies..." 
-Set-GPRegistryValue -Name $localGpo -Key "HKLM\Software\ECORP-Lab" `
-    -ValueName "LocalAcctPolicyApplied" -Type DWord -Value 1 | Out-Null
-
-if (-not ((Get-GPInheritance -Target $domainDN).GpoLinks.DisplayName -contains $localGpo)) {
-    New-GPLink -Name $localGpo -Target $domainDN -LinkEnabled Yes -ErrorAction SilentlyContinue | Out-Null
-    Write-Host "    + linked $localGpo -> $domainDN (domain root)"
-}
-
 # OU: workstations
 Write-Host "[*] Creating OU structure"
 
