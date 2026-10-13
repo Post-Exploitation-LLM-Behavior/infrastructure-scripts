@@ -48,6 +48,8 @@ if ($cs.PartOfDomain) {
     Die "Already joined to a DIFFERENT domain ($($cs.Domain)). Leave it first; not touching it."
 }
 
+Write-Host "testing1"
+
 # point DNS at the DC, confirm the SRV resolves, THEN run the join
 $nic = Get-NetAdapter -Physical | Where-Object Status -eq 'Up' | Select-Object -First 1
 Set-DnsClientServerAddress -InterfaceIndex $nic.ifIndex -ServerAddresses 192.168.10.10
