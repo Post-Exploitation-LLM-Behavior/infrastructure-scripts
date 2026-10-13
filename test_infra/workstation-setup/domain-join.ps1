@@ -63,11 +63,12 @@ while ($true) {
     try {
         $tp = (Get-MpComputerStatus).IsTamperProtected
     } catch {
+        Write-Host "rar"
         Warn "Could not read Defender status: $($_.Exception.Message)"
     }
 
     if ($tp -eq $false) {
-        Ok "Tamper Protection is OFF — continuing."
+        Ok "Tamper Protection is OFF: continuing."
         break
     }
 
@@ -80,7 +81,7 @@ while ($true) {
 
     $key = Read-Host "   >"
     if ($key -match '^[Xx]') {
-        Die "Cancelled by user — Tamper Protection still enabled, no domain join performed."
+        Die "Cancelled by user: Tamper Protection still enabled, no domain join performed."
     }
 }
 
