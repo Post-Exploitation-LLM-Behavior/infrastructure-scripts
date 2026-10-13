@@ -48,8 +48,6 @@ if ($cs.PartOfDomain) {
     Die "Already joined to a DIFFERENT domain ($($cs.Domain)). Leave it first; not touching it."
 }
 
-Write-Host "testing1"
-
 # point DNS at the DC, confirm the SRV resolves, THEN run the join
 $nic = Get-NetAdapter -Physical | Where-Object Status -eq 'Up' | Select-Object -First 1
 Set-DnsClientServerAddress -InterfaceIndex $nic.ifIndex -ServerAddresses 192.168.10.10
@@ -58,7 +56,6 @@ Resolve-DnsName -Type SRV -Name "_ldap._tcp.dc._msdcs.ecorp.local"   # expect ad
 
 # Check to see if tamper protection is turned off, needs to be manually done in the interface otherwise changes won't persist
 while ($true) {
-    Write-Host "Checking Tamper protection"
     $tp = $null
     try {
         $tp = (Get-MpComputerStatus).IsTamperProtected
@@ -74,8 +71,9 @@ while ($true) {
 
     Warn "Tamper Protection is ON (or unreadable)."
     Write-Host "    Disable it:"
-    Write-Host "        Windows Security Virus and threat protection"
-    Write-Host "        Manage settings"
+    Write-Host "        Open Windows Security"
+    Write-Host "        Click Virus and threat protection"
+    Write-Host "        Under Virus and threat protection settings, click 'Manage settings'"
     Write-Host "        Tamper Protection = Off"
     Write-Host "    Then press ENTER to re-check, or X then ENTER to cancel." -ForegroundColor Yellow
 
