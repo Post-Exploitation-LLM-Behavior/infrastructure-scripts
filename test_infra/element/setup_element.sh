@@ -128,7 +128,7 @@ LDAP_BLOCK=$(cat <<EOF
 # Matrix account on first success. AD stays the source of truth. localdb stays
 # enabled so the break-glass admin below still works.
 modules:
-  - module: "ldap_auth_provider.LdapAuthProvider"
+  - module: "ldap_auth_provider.LdapAuthProviderModule"
     config:
       enabled: true
       uri: "ldap://${AD_HOST}:${AD_PORT}"
