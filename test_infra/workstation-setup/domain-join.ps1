@@ -48,6 +48,11 @@ if ($cs.PartOfDomain) {
     Die "Already joined to a DIFFERENT domain ($($cs.Domain)). Leave it first; not touching it."
 }
 
+# Find the up adapter, point its DNS at the DC, flush cache
+$nic = Get-NetAdapter -Physical | Where-Object Status -eq 'Up' | Select-Object -First 1
+Set-DnsClientServerAddress -InterfaceIndex $nic.ifIndex -ServerAddresses 192.168.10.10
+Clear-DnsClientCache
+
 # Check to see if tamper protection is turned off, needs to be manually done in the interface otherwise changes won't persist
 while ($true) {
     $tp = $null
