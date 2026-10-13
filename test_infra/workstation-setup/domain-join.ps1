@@ -48,13 +48,15 @@ if ($cs.PartOfDomain) {
     Die "Already joined to a DIFFERENT domain ($($cs.Domain)). Leave it first; not touching it."
 }
 
-# Find the up adapter, point its DNS at the DC, flush cache
+# point DNS at the DC, confirm the SRV resolves, THEN run the join
 $nic = Get-NetAdapter -Physical | Where-Object Status -eq 'Up' | Select-Object -First 1
 Set-DnsClientServerAddress -InterfaceIndex $nic.ifIndex -ServerAddresses 192.168.10.10
 Clear-DnsClientCache
+Resolve-DnsName -Type SRV -Name "_ldap._tcp.dc._msdcs.ecorp.local"   # expect ad-serv.ecorp.local
 
 # Check to see if tamper protection is turned off, needs to be manually done in the interface otherwise changes won't persist
 while ($true) {
+    Write-Host "Checking Tamper protection"
     $tp = $null
     try {
         $tp = (Get-MpComputerStatus).IsTamperProtected
