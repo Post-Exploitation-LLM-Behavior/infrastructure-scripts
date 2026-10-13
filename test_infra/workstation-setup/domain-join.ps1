@@ -48,6 +48,30 @@ if ($cs.PartOfDomain) {
     Die "Already joined to a DIFFERENT domain ($($cs.Domain)). Leave it first; not touching it."
 }
 
+# Check to see if tamper protection is turned off, needs to be manually done in the interface otherwise changes won't persist
+while ($true) {
+    $tp = $null
+    try {
+        $tp = (Get-MpComputerStatus).IsTamperProtected
+    } catch {
+        Warn "Could not read Defender status: $($_.Exception.Message)"
+    }
+
+    if ($tp -eq $false) {
+        Ok "Tamper Protection is OFF — continuing."
+        break
+    }
+
+    Warn "Tamper Protection is ON (or unreadable)."
+    Write-Host "    Disable it: Windows Security > Virus & threat protection > Manage settings > Tamper Protection = Off"
+    Write-Host "    Then press ENTER to re-check, or X then ENTER to cancel." -ForegroundColor Yellow
+
+    $key = Read-Host "   >"
+    if ($key -match '^[Xx]') {
+        Die "Cancelled by user — Tamper Protection still enabled, no domain join performed."
+    }
+}
+
 # Set the DNS server to the DC
 if (-not $SkipDns) {
     $nic = Get-NetAdapter -Physical | Where-Object Status -eq 'Up' |
