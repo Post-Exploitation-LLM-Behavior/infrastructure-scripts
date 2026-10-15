@@ -119,7 +119,7 @@ EOF
 )
 fi
 
-# --- LDAP auth block (only when USE_LDAP=true) -------------------------------
+# LDAP auth block
 LDAP_BLOCK=""
 if [[ "${USE_LDAP}" == "true" ]]; then
 LDAP_BLOCK=$(cat <<EOF
